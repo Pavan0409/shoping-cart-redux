@@ -3,8 +3,8 @@ import Layout from "./components/Layout/Layout";
 import Products from "./components/Shop/Products";
 import { Fragment, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { showActions } from "./store/showReducer";
 import Notification from "./components/UI/Notification";
+import { sendCartData, fetchCartData } from "./store/fetch";
 
 let isInitial = true;
 
@@ -15,49 +15,17 @@ function App() {
   const notification = useSelector((state) => state.show.notification);
 
   useEffect(() => {
-    const sendCartData = async () => {
-      dispatch(
-        showActions.showNotification({
-          status: "pending",
-          title: "Sending...",
-          message: "Sending cart data!",
-        })
-      );
-      const response = await fetch(
-        "https://redux-shoppingcart-e78fa-default-rtdb.firebaseio.com/cart.json",
-        {
-          method: "PUT",
-          body: JSON.stringify(cart),
-        }
-      );
-      // console.log(response)
-      if (!response.ok) {
-        throw new Error("Sending cart data failed.");
-      }
+    dispatch(fetchCartData());
+  }, [dispatch]);
 
-      dispatch(
-        showActions.showNotification({
-          status: "success",
-          title: "Success!",
-          message: "Sent cart data successfully!",
-        })
-      );
-    };
-
+  useEffect(() => {
     if (isInitial) {
       isInitial = false;
       return;
     }
-
-    sendCartData().catch((error) => {
-      dispatch(
-        showActions.showNotification({
-          status: "error",
-          title: "Error!",
-          message: "Sending cart data failed!",
-        })
-      );
-    });
+    if (cart.changed) {
+      dispatch(sendCartData(cart));
+    }
   }, [cart, dispatch]);
 
   return (
